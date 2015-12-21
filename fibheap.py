@@ -305,3 +305,44 @@ class FibonacciHeap(object):
             if self.nodes[i].data == item:
                 return self.nodes[i]
         return None
+		
+import sys, unittest
+
+class fhtest(unittest.TestCase):
+    '''
+    Performs a coprehensive check of the Fibonacci Heap Class
+    Checks if all functions are working correctly
+    '''
+    def test_fullcheck(self):
+        '''
+        Function for the coprehensive test
+        '''
+        #check initialization
+        fh = FibonacciHeap()
+        self.assertEqual(fh.is_empty(), True)
+        #check insertion and single deletion
+        x = len(fh.roots)
+        for i in range(1,101):
+            fh.insert(i)
+        self.assertEqual(len(fh.roots),x+100)
+        self.assertEqual(fh.minroot.data, 1)
+        temp = fh.fh_pop()
+        self.assertEqual(temp, 1)
+        self.assertEqual(fh.minroot.data, 2)
+        #check decrease key for change in min-root and invalid search
+        fh.decrease_key(67,-1)
+        fh.decrease_key(69,1)
+        self.assertEqual(fh.decrease_key(69,0),'')
+        self.assertEqual(fh.minroot.data, -1)
+        #check union
+        fh2 = FibonacciHeap()
+        fh2.insert(101)
+        fh.union(fh2)
+        #check pop
+        while not fh.is_empty():
+            temp = fh.fh_pop()
+        self.assertEqual(temp, 101)
+        self.assertEqual(fh.is_empty(), True)
+        
+suite = unittest.TestLoader().loadTestsFromTestCase(fhtest)
+unittest.TextTestRunner(verbosity=1).run(suite)
