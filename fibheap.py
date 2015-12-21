@@ -346,3 +346,30 @@ class fhtest(unittest.TestCase):
         
 suite = unittest.TestLoader().loadTestsFromTestCase(fhtest)
 unittest.TextTestRunner(verbosity=1).run(suite)
+
+# a demo test i made for class
+
+from random import randint
+
+a = FibonacciHeap()
+#help(a)
+a.insert(6)
+a.insert(5)
+a.insert(1)
+a.insert(9)
+a.insert(3)
+print a.fh_pop()
+print a.minroot.find_rank()
+a.decrease_key(9,2)
+a.decrease_key(5,4)
+print a.fh_pop()
+print a.fh_pop()
+print a.fh_pop()
+print ''
+b = FibonacciHeap()
+for i in range(1,101):
+    b.insert(randint(1,100))
+while not b.is_empty():
+    print b.fh_pop(),
+    
+print ''
