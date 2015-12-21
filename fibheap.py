@@ -121,3 +121,187 @@ class FhObject(object):
                     if x.data < child.data:
                         child.child = x
                         self.__balance(child,x)
+						
+class FibonacciHeap(object):
+    '''
+    This is the class for a Fibonacci Heap
+    '''
+    def __init__(self):
+        self.roots = [] #this list will only hold roots
+        self.nodes = [] #this list will hold all nodes in the F-heap, useful for keeping find operation simple
+        self.minroot = None
+        self. icount = 0
+    
+    def find_min(self):
+        '''
+        Finds the root with minimum value
+        Used in other functions to keep the pointer to the smallest value up to date
+        '''
+        index = 0
+        for i in range (0, len(self.roots)):
+            if self.minroot == None:
+                self.minroot = self.roots[i]
+                index = i
+            else:
+                if self.roots[i].data < self.minroot.data:
+                    self.minroot = self.roots[i]
+                    index = i
+        return index
+    
+    def insert(self, item):
+        '''
+        Inserts new data into the sequence
+        Updates the minimum root automatically
+        Inserted data must be comparable with < or >
+        Tuples of the form (priority, key) accepted
+        '''
+        
+        #algorithm is 'lazy' - we just insert the new item for now, we do not
+        #bother updating the heap for balance like we do in classic min-heap
+        
+        new = FhObject()
+        new.data = item
+        self.roots.append(new)
+        self.icount += 1
+        self.nodes.append(new)
+        if self.minroot == None:
+            self.minroot = new
+        else:
+            if new.data < self.minroot.data:
+                self.minroot = new
+        
+    def union(self, obj):
+        '''
+        Concatenates root lists of two Fibonacci Heaps
+        Updates minimum root automatically
+        '''
+        self.roots += obj.roots
+        self.nodes += obj.nodes
+        self.icount += 1
+        self.find_min()
+        
+    def decrease_key(self, item, value):
+        '''
+        Decreases the value of a given node in the Fibonacci Heap
+        If multiple keys with the same value exists, it will perform this operation on the first node with the given value
+        Operation is return error message if key is not found
+        '''
+        
+        #again, we take the 'lazy' approach - just re-attach the decreased nodes to root list
+        #we keep the order of the heap in check by marking nodes who've had more than 1 child
+        #detached due to this function, and we recursively detach marked parents
+        
+        x = self.__find(item)
+        if x == None:
+            print "Error: Could not find a node with the given value"
+            return ''
+        x.data = value
+        if x not in self.roots:
+            if x.parent.mark == 0:
+                x.parent.mark = 1
+                x.detach()
+                self.roots.append(x)
+            else:
+                y = x.parent
+                x.detach()
+                self.roots.append(x)
+                while y.mark != 0:
+                    z = y.parent
+                    if z == None:
+                        break
+                    y.mark = 0
+                    y.detach()
+                    self.roots.append(y)
+                    y = z
+        self.icount += 1
+        self.find_min()
+        
+    def fh_pop(self):
+        '''
+        Pops the minimum element from the Fibonacci Heap
+        Functions similar to pop in a classic Priority Queue
+        '''
+        
+        #first extarct the min-root and append all it's children to the root list
+        
+        if self.is_empty():
+            print "Underflow",
+            return ''
+        else:
+            x = self.minroot
+            y = x.data
+            self.roots.remove(self.minroot)
+            self.nodes.remove(self.minroot)
+            self.icount += 1
+            if x.child:
+                x = x.child
+                self.roots.append(x)
+                temp = x
+                while x.lsib != None:
+                    x = x.lsib
+                    self.roots.append(x)
+                    self.icount += 1
+                x = temp
+                while x.rsib != None:
+                    x = x.rsib
+                    self.roots.append(x)
+                    self.icount += 1
+        for i in range(0,len(self.roots)):
+            if self.roots[i].parent != None:
+                self.roots[i].detach()
+                
+        #consolidate - perform all the steps which the 'lazy' algorithm has been postponing so far
+        
+        #cur - current node in the loop, checks nodes for same rank, if there is a match, attaches itself
+        #to it, and starts over, searching for root nodes matching it's new rank, once this is exhausted,
+        #it moves on to the next node
+        
+        #prev - basically, to check for the algorithm's termination, we check if the root list has nodes with all 
+        #unique ranks : this is the only condition which will not reset this variable and cause the loop to break
+        
+        #We cannot directly loop this using the bound len(roots) because that bound changes during the loop
+        
+        if self.is_empty():
+            self.minroot = None
+            return y
+        cur = self.roots[0]
+        i = self.roots.index(cur)
+        prev = 0
+        while True:
+            if prev == len(self.roots):
+                break
+            i = (i+1)%(len(self.roots))
+            if i == self.roots.index(cur):
+                cur = self.roots[(i+1)%(len(self.roots))]
+                i = self.roots.index(cur)
+                prev += 1
+                continue
+            if cur.find_rank() == self.roots[i].find_rank():
+                cur.add_child(self.roots[i])
+                self.icount += 1
+                self.roots.remove(self.roots[i])
+                i = self.roots.index(cur)
+                prev = 0
+                continue
+        self.minroot = None
+        self.find_min()
+        return y
+                
+    def is_empty(self):
+        '''
+        Returns True if the Fibonacci Heap is empty
+        '''
+        if len(self.roots) == 0:
+            return True
+        else:
+            return False
+    
+    def __find(self, item):
+        '''
+        Private method - find an item in Fibonacci heap which matches a given key
+        Used only by decrease key method 
+        '''
+        for i in range (0, len(self.nodes)):
+            if self.nodes[i].data == item:
+                return self.nodes[i]
+        return None
