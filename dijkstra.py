@@ -580,6 +580,14 @@ class Network(Graph):
             self.weights[(e1,e2)] = weight
             self.weights[(e2,e1)] = weight
         self.edge_labels = self.weights
+		
+V = ['A', 'B', 'C', 'D', 'E']
+W = {('A','C'):3, ('A','B'):6, ('A','D'):7, ('B','C'):1, ('B','D'):2, ('C','E'):10, ('B','E'):4}
+G1 = Network(V,W)
+G1.Vcoord = {'A':(1,0),'C':(3,5),'B':(4,0),'D':(4,-5),'E':(7,0)}
+G1.plot()
+print G1.weights
+
 
 # original dijkstra code plus Fibonacci Heap code
 
